@@ -32,24 +32,27 @@ const typeButton = (text, t, beans) => {
   </span>
 }
 
-export default ({ datas, beans, isReturn }) => {
-  /**
-   * 绑定Bean字段，只解析两级，如果想全部解析，请使用“递归”。
-   */
-  datas && datas.forEach(t => {
-    t.hierarchy = 1;
-    const fields = beans[t.qtype];
-    if (fields) {
-      t.children = fields;
-      fields.forEach(f => {
-        f.hierarchy = 2;
-        const ffields = beans[f.qtype];
-        if (ffields)
-          f.children = ffields;
-      })
+const parseReturnArguments = (args, hierarchy, beans) => {
+  args.forEach(arg => {
+    arg.hierarchy = hierarchy++;
+    //1. 首先根据完全限定名解析Bean，可能是普通bean也可能是包含简单TypeVariable字段的bean。
+    let fields = beans[arg.qtype];
+    let typeArguments;
+    //2. 否则，判断是否拥有类型参数。
+    if (!fields && (typeArguments = arg.typeArguments)) {
+      //3. 如果拥有单个类型参数，尝试解析该参数，比如："java.util.List<T>"
+      fields = typeArguments.length === 1 ? beans[typeArguments[0].qtype] : false
     }
-  })
+    if (!fields)
+      return;
+    //防止污染beans，做深copy
+    const fields_copy = JSON.parse(JSON.stringify(fields));
+    arg.children = fields_copy;
+    parseReturnArguments(fields_copy, hierarchy, beans)
+  });
+}
 
+export default ({ datas, beans, isReturn }) => {
   const columns = [
     {
       title: '参数名称',
@@ -70,14 +73,19 @@ export default ({ datas, beans, isReturn }) => {
     }
   ];
 
-  if (!isReturn)
+  if (isReturn) {
+    datas && parseReturnArguments(datas, 1, beans);
+  } else {
     columns.push({
       title: '是否必须',
       dataIndex: 'required',
       width: 100,
-      key: 'required',
-      fixed: 'right'
+      fixed: 'right',
+      render: (text) => text ? '是' : '否'
     });
+    console.log(datas)
+  }
+
 
   return (
     <div id='params-or-returns-table-div'>

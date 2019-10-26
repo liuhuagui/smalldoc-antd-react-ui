@@ -12,14 +12,12 @@ const { SubMenu } = Menu;
 class MainLayout extends React.Component {
   constructor(props) {
     super(props);
-    this.docurl = document.querySelector('#docurl').textContent;
+    this.state = {
+      data: {},//JSON.parse(document.querySelector('#docJSON').value),
+      collapsed: false,
+      activeKey: 0
+    };
   }
-
-  state = {
-    data: {},
-    collapsed: false,
-    activeKey: 0
-  };
 
   toggle = () => {
     this.setState({
@@ -29,58 +27,59 @@ class MainLayout extends React.Component {
 
   getClassDocInfo = ({ key, domEvent }) => {
     // domEvent.preventDefault();
-    this.setState({ currentClassDocInfo: this.state.data.classes[key]});
+    this.setState({ currentClassDocInfo: this.state.data.classes[key] });
   };
 
   onClickMenuItem = ({ domEvent }) => {
     // domEvent.preventDefault();为了触发链接跳转，不再阻止事件默认行为
-    this.setState({ currentClassDocInfo: this.state.data.classes[domEvent.target.id] ,activeKey: domEvent.target.getAttribute("data-i") });
+    this.setState({ currentClassDocInfo: this.state.data.classes[domEvent.target.id], activeKey: domEvent.target.getAttribute("data-i") });
   };
 
-  setActiveKey = (activeKey)=>{
-    this.setState({activeKey});
+  setActiveKey = (activeKey) => {
+    this.setState({ activeKey });
   }
 
   componentDidMount() {
+    this.docurl = document.querySelector('#docurl').textContent;
     Fetch(this.docurl, {}, data => this.setState({ data }));
   }
 
   render() {
     const { data: { beans = [], classes = [], url, ...other }, currentClassDocInfo, activeKey } = this.state;
     const siderWidth = '17.8vw';
-    const contentLayoutMarginLeft = this.state.collapsed?80:siderWidth;
+    const contentLayoutMarginLeft = this.state.collapsed ? 80 : siderWidth;
     return (
       <Layout id="components-layout-smalldoc-custom-trigger" style={{ minHeight: '100vh' }}>
         <Sider trigger={null} collapsible collapsed={this.state.collapsed}
           width={siderWidth}
-          style={{ overflow: 'auto' ,height:'100vh',position:'fixed'}}>
+          style={{ overflow: 'auto', height: '100vh', position: 'fixed' }}>
           <div className="logo" />
-            <Menu theme='dark' mode="inline" onClick={this.onClickMenuItem}>
-              {
-                classes.map((classDocInfo, index) => {
-                  return (
-                    <SubMenu
-                      onTitleClick={this.getClassDocInfo}
-                      key={index}
-                      title={
-                        <span>
-                          <Icon type="link" />
-                          <span>{classDocInfo.comment}</span>
-                        </span>
-                      }
-                    >
-                      {
-                        classDocInfo.methods.map(({ comment, name }, i) => (
-                          <Menu.Item key={`${index}-${i}`}>
-                            <a id={index} data-i={i} href={`#${classDocInfo.name}-${name}`}>{comment}</a><br />
-                          </Menu.Item>
-                        ))
-                      }
-                    </SubMenu>
-                  )
-                })
-              }
-            </Menu>
+          <Menu theme='dark' mode="inline" onClick={this.onClickMenuItem}>
+            {
+              classes.map((classDocInfo, index) => {
+                return (
+                  <SubMenu
+                    onTitleClick={this.getClassDocInfo}
+                    key={index}
+                    title={
+                      <span>
+                        <Icon type="link" />
+                        <span>{classDocInfo.comment}</span>
+                      </span>
+                    }
+                  >
+                    {
+                      classDocInfo.methods.map(({ comment, name }, i) => (
+                        <Menu.Item key={`${index}-${i}`}>
+                          <a id={index} data-i={i} href={`#${classDocInfo.name}-${name}`}>{comment}</a><br />
+                        </Menu.Item>
+                      ))
+                    }
+                  </SubMenu>
+                )
+              })
+            }
+          </Menu>
         </Sider>
         <Layout style={{ marginLeft: contentLayoutMarginLeft }}>
           <Affix offsetTop={0}>
@@ -102,7 +101,7 @@ class MainLayout extends React.Component {
           <Content style={{ margin: '20px 10px 0px 10px' }}>
             <div style={{ padding: 50, background: '#fff' }}>
               {
-                currentClassDocInfo ? <ClassDocInfo {...{ currentClassDocInfo, beans, url, activeKey}} setActiveKey={this.setActiveKey} /> : <DocInfo {...{ url, other }} />
+                currentClassDocInfo ? <ClassDocInfo {...{ currentClassDocInfo, beans, url, activeKey }} setActiveKey={this.setActiveKey} /> : <DocInfo {...{ url, other }} />
               }
             </div>
           </Content>
