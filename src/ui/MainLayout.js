@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Affix, Icon, Badge, Tag } from 'antd';
+import { Layout, Menu, Affix, Icon, Badge, Tag, Select } from 'antd';
 import { generalFetch as Fetch } from '../util/Utils'
 import DocInfo from "./DocInfo";
 import ClassDocInfo from "./ClassDocInfo";
@@ -8,6 +8,7 @@ import 'antd/dist/antd.css';
 
 const { Sider, Content, Header } = Layout;
 const { SubMenu } = Menu;
+const { Option } = Select;
 
 class MainLayout extends React.Component {
   constructor(props) {
@@ -15,7 +16,10 @@ class MainLayout extends React.Component {
     this.state = {
       data: {},//JSON.parse(document.querySelector('#docJSON').value),
       collapsed: false,
-      activeKey: 0
+      activeKey: 0,
+      packageArray: [],
+      classes: [],
+      selected: ''
     };
   }
 
@@ -27,33 +31,61 @@ class MainLayout extends React.Component {
 
   getClassDocInfo = ({ key, domEvent }) => {
     // domEvent.preventDefault();
-    this.setState({ currentClassDocInfo: this.state.data.classes[key] });
+    this.setState({ currentClassDocInfo: this.state.classes[key] });
   };
 
   onClickMenuItem = ({ domEvent }) => {
     // domEvent.preventDefault();为了触发链接跳转，不再阻止事件默认行为
-    this.setState({ currentClassDocInfo: this.state.data.classes[domEvent.target.id], activeKey: domEvent.target.getAttribute("data-i") });
+    this.setState({ currentClassDocInfo: this.state.classes[domEvent.target.id], activeKey: domEvent.target.getAttribute("data-i") });
   };
 
   setActiveKey = (activeKey) => {
     this.setState({ activeKey });
-  }
+  };
+
+  onChange = (selected) => {
+    const { data: { packages = {} } } = this.state;
+    this.setState({ selected, ...getClasses(packages, selected) });
+  };
 
   componentDidMount() {
     this.docurl = document.querySelector('#docurl').textContent;
-    Fetch(this.docurl, {}, data => this.setState({ data }));
+    Fetch(this.docurl, {}, data => {
+      const { packages = {} } = data;
+      const packageArray = Object.entries(packages);
+      const selected = packageArray[0] ? packageArray[0][0] : '';
+      this.setState({ data, packageArray, selected, ...getClasses(packages, selected) })
+    });
   }
 
   render() {
-    const { data: { beans = [], classes = [], url, ...other }, currentClassDocInfo, activeKey } = this.state;
+    const { data: { beans = [], url, ...other }, currentClassDocInfo, activeKey, selected, packageArray, classes, packageUrl } = this.state;
     const siderWidth = '17.8vw';
     const contentLayoutMarginLeft = this.state.collapsed ? 80 : siderWidth;
+    const actualUrl = packageUrl ? packageUrl : url;
+
     return (
       <Layout id="components-layout-smalldoc-custom-trigger" style={{ minHeight: '100vh' }}>
         <Sider trigger={null} collapsible collapsed={this.state.collapsed}
           width={siderWidth}
           style={{ overflow: 'auto', height: '100vh', position: 'fixed' }}>
-          <div className="logo" />
+          <div style={{ display: 'flex', alignItems: 'center', height: 64, justifyContent: 'center' }} >
+            <Select
+              showSearch
+              style={{ width: '70%' }}
+              optionFilterProp="children"
+              onChange={this.onChange}
+              value={selected}
+              filterOption={(input, option) =>
+                option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >{
+                packageArray.map(([packageName, { comment }], index) => {
+                  return <Option key={index} value={packageName}>{comment}</Option>
+                })
+              }
+            </Select>
+          </div>
           <Menu theme='dark' mode="inline" onClick={this.onClickMenuItem}>
             {
               classes.map((classDocInfo, index) => {
@@ -98,10 +130,10 @@ class MainLayout extends React.Component {
               <a style={{ marginLeft: '20px' }} href={other.support}>{other.support}</a>
             </Header>
           </Affix>
-          <Content style={{ margin: '20px 10px 0px 10px' }}>
-            <div style={{ padding: 50, background: '#fff' }}>
+          <Content style={{ margin: '10px 0px' }}>
+            <div style={{ padding: 30, background: '#fff' }}>
               {
-                currentClassDocInfo ? <ClassDocInfo {...{ currentClassDocInfo, beans, url, activeKey }} setActiveKey={this.setActiveKey} /> : <DocInfo {...{ url, other }} />
+                currentClassDocInfo ? <ClassDocInfo {...{ currentClassDocInfo, beans, url: actualUrl, activeKey }} setActiveKey={this.setActiveKey} /> : <DocInfo {...{ url, other }} />
               }
             </div>
           </Content>
@@ -112,3 +144,9 @@ class MainLayout extends React.Component {
 }
 
 export default MainLayout;
+
+function getClasses(packages, selected) {
+  const package0 = packages[selected];
+  const classes = package0 ? package0.classes : [];
+  return { classes, packageUrl: package0.url };
+}
