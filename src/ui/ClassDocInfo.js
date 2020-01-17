@@ -35,11 +35,12 @@ class ClassDocInfo extends React.Component {
               return (
                 //由于Panel没有onClick，使用ReactNode header的onClick解决，但是header的作用范围太小，
                 //默认的expandIcon无法被header的onClick覆盖，容易产生误导，所以禁用系统的expandIcon，在header中自定义。
-                <Panel header={<div className={classKeyPairs[0]} onClick={() => setActiveKey(index == activeKey ? ++index : index)}>
-                  <div className={classKeyPairs[1]}><Icon type={activeKey == index ? 'down' : 'right'} />&nbsp;{methodDocInfo.comment}</div>
+                <Panel header={<div className={classKeyPairs[0]} onClick={() => setActiveKey(index === activeKey ? ++index : index)}>
+                  <div className={classKeyPairs[1]}><Icon type={activeKey === index ? 'down' : 'right'} />&nbsp;{methodDocInfo.comment}</div>
                 </div>}
                   id={`${other.name}-${methodDocInfo.name}`} key={index} showArrow={false}>
-                  <MethodDocInfo  {...{ methodDocInfo, beans, url }} />
+                  {/* 这个Key是为了‘reset’状态 */}
+                  <MethodDocInfo  tableId={methodDocInfo.name+index} key={methodDocInfo.name+index} {...{ methodDocInfo, beans, url }} />
                 </Panel>
               );
             })

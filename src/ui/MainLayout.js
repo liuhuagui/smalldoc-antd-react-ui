@@ -1,8 +1,8 @@
 import React from 'react';
-import { Layout, Menu, Affix, Icon, Badge, Tag, Select } from 'antd';
-import { generalFetch as Fetch } from '../util/Utils'
+import { Layout, Menu, Affix, Badge, Tag, Select, Tooltip } from 'antd';
 import DocInfo from "./DocInfo";
 import ClassDocInfo from "./ClassDocInfo";
+// import {  } from "@and";
 import '../css/layout.css';
 import 'antd/dist/antd.css';
 
@@ -31,31 +31,38 @@ class MainLayout extends React.Component {
 
   getClassDocInfo = ({ key, domEvent }) => {
     // domEvent.preventDefault();
-    this.setState({ currentClassDocInfo: this.state.classes[key] });
+    this.setState({ currentClassDocInfo: this.state.classes[key], activeKey: 0 });
   };
 
   onClickMenuItem = ({ domEvent }) => {
     // domEvent.preventDefault();为了触发链接跳转，不再阻止事件默认行为
-    this.setState({ currentClassDocInfo: this.state.classes[domEvent.target.id], activeKey: domEvent.target.getAttribute("data-i") });
+    this.setState({ currentClassDocInfo: this.state.classes[domEvent.target.id], activeKey: Number.parseInt(domEvent.target.getAttribute("data-i")) });
   };
 
   setActiveKey = (activeKey) => {
     this.setState({ activeKey });
   };
 
-  onChange = (selected) => {
+  onSelectChange = (selected) => {
     const { data: { packages = {} } } = this.state;
-    this.setState({ selected, ...getClasses(packages, selected) });
+    const { classes, packageUrl } = getClasses(packages, selected);
+    this.setState({ selected, packageUrl, classes, currentClassDocInfo: classes[0], activeKey: 0 });
   };
 
   componentDidMount() {
-    this.docurl = document.querySelector('#docurl').textContent;
-    Fetch(this.docurl, {}, data => {
+    const docurl = document.querySelector('#docurl').textContent;
+    fetch(docurl, {
+      method: 'POST'
+    }).then(response => {
+      if (response.ok)
+        return response.json();
+      throw new Error(`Request is failed, status is ${response.status}`);
+    }).then(data => {
       const { packages = {} } = data;
       const packageArray = Object.entries(packages);
       const selected = packageArray[0] ? packageArray[0][0] : '';
-      this.setState({ data, packageArray, selected, ...getClasses(packages, selected) })
-    });
+      this.setState({ data, packageArray, selected, ...getClasses(packages, selected) });
+    }, reason => console.log(reason));
   }
 
   render() {
@@ -74,14 +81,14 @@ class MainLayout extends React.Component {
               showSearch
               style={{ width: '70%' }}
               optionFilterProp="children"
-              onChange={this.onChange}
+              onChange={this.onSelectChange}
               value={selected}
               filterOption={(input, option) =>
                 option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
             >{
                 packageArray.map(([packageName, { comment }], index) => {
-                  return <Option key={index} value={packageName}>{comment}</Option>
+                  return <Option key={index} value={packageName}><Tooltip placement="right" title={comment}>{comment}</Tooltip></Option>
                 })
               }
             </Select>
