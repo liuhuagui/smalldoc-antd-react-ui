@@ -1,38 +1,12 @@
 import React from "react";
-import { Upload, Button, Icon } from 'antd';
+import { Upload, Button } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 
 export default class ManualUpload extends React.Component {
     state = {
         fileList: [],
-        count: 0,
         uploading: false,
     };
-
-    handleUpload = () => {
-        const { fileList } = this.state;
-        const formData = new FormData();
-        fileList.forEach(file => {
-            formData.append('files[]', file);
-        });
-
-        this.setState({
-            uploading: true,
-        });
-    }
-
-    componentDidUpdate(prevprops, prevState) {
-        console.log("变化开始: " + Date.now())
-        console.log(prevState.fileList.length)
-        console.log(prevState.count)
-
-        if (prevState.count !== prevState.fileList.length) {
-            console.log("变化进行: " + Date.now())
-            this.props.onUp();
-            this.setState({ count: prevState.fileList.length });
-        }
-        console.log("--------" + Date.now())
-    }
-
 
     render() {
         const { uploading, fileList } = this.state;
@@ -48,9 +22,11 @@ export default class ManualUpload extends React.Component {
                 });
             },
             beforeUpload: file => {
-                console.log(file)
+                const fileList = [...this.state.fileList, file];
+                const { record, dataIndex } = this.props;
+                record[dataIndex] = fileList;//直接修改可变对象，不用再浅复制了
                 this.setState(state => ({
-                    fileList: [...state.fileList, file],
+                    fileList
                 }));
                 return false;
             },
@@ -60,7 +36,7 @@ export default class ManualUpload extends React.Component {
         return (
             <Upload {...props}>
                 <Button loading={uploading}>
-                    <Icon type="upload" /> {uploading ? 'Uploading' : 'Select File'}
+                    <UploadOutlined /> {uploading ? 'Uploading' : 'Select File'}
                 </Button>
             </Upload>
         );

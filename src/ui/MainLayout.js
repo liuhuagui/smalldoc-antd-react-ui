@@ -2,9 +2,10 @@ import React from 'react';
 import { Layout, Menu, Affix, Badge, Tag, Select, Tooltip } from 'antd';
 import DocInfo from "./DocInfo";
 import ClassDocInfo from "./ClassDocInfo";
-// import {  } from "@and";
-import '../css/layout.css';
+import { LinkOutlined, MenuUnfoldOutlined, MenuFoldOutlined, NotificationOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.css';
+import '../css/layout.css';
+
 
 const { Sider, Content, Header } = Layout;
 const { SubMenu } = Menu;
@@ -102,7 +103,7 @@ class MainLayout extends React.Component {
                     key={index}
                     title={
                       <span>
-                        <Icon type="link" />
+                        <LinkOutlined />
                         <span>{classDocInfo.comment}</span>
                       </span>
                     }
@@ -123,13 +124,12 @@ class MainLayout extends React.Component {
         <Layout style={{ marginLeft: contentLayoutMarginLeft }}>
           <Affix offsetTop={0}>
             <Header style={{ background: '#fff', padding: 0 }}>
-              <Icon
-                className="trigger"
-                type={this.state.collapsed ? 'menu-unfold' : 'menu-fold'}
-                onClick={this.toggle}
-              />
+              {
+                this.state.collapsed ? <MenuUnfoldOutlined className="trigger" onClick={this.toggle} />
+                  : <MenuFoldOutlined className="trigger" onClick={this.toggle} />
+              }
               <Badge dot>
-                <Icon style={{ fontSize: 20 }} rotate={-10} type="notification" />
+                <NotificationOutlined style={{ fontSize: 20 }} rotate={-10} type="notification" />
               </Badge>
               <span style={{ marginLeft: '20px' }}>
                 文档由<Tag color="red" style={{ margin: 0 }} >smalldoc</Tag>提供支持

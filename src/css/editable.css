@@ -5,10 +5,30 @@
 .editable-cell-value-wrap {
     padding: 5px 12px;
     cursor: pointer;
+    word-break: break-all;
+    word-wrap: break-word;
 }
 
 .editable-row:hover .editable-cell-value-wrap {
     border: 1px solid #d9d9d9;
     border-radius: 4px;
     padding: 4px 11px;
+}
+
+.forward-visiable-button {
+    visibility: hidden;
+    width: 47px !important;
+    height: 32px !important;
+    margin: -5px -24px -5px 0px;
+    transition: none !important;
+}
+
+.editable-row:hover .forward-visiable-button {
+    visibility: visible;
+}
+
+.back-addon-after-button {
+    width: 47px !important;
+    height: 32px !important;
+    margin: -1px -11px;
 }

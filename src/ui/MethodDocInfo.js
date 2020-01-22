@@ -1,6 +1,7 @@
 import React from 'react';
 import { Descriptions, Tag, Switch, Button } from 'antd';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { CopyOutlined } from "@ant-design/icons";
 import MyTag from './MyTag'
 import ReturnsTable from './ReturnsTable';
 import ParamsTable from './ParamsTable';
@@ -32,7 +33,7 @@ class MethodDocInfo extends React.Component {
   }
 
   render() {
-    const { methodDocInfo, beans, url, tableId } = this.props;
+    const { methodDocInfo, beans, url} = this.props;
     const { params, returns, mapping: { path, method, produces, consumes }, authors } = methodDocInfo;
     const { part, urlPath, urlMethod } = this.state;
     return (<div>
@@ -46,7 +47,7 @@ class MethodDocInfo extends React.Component {
                 return <span key={i}>
                   <MyTag value={wholePath} color="green">{urlPath0}</MyTag>
                   <CopyToClipboard text={urlPath0} onCopy={() => this.setState({ copied: true })}>
-                    <Button size='small' icon="copy" style={{ marginRight: 15 }} />
+                    <Button size='small' icon={<CopyOutlined />} style={{ marginRight: 15 }} />
                   </CopyToClipboard>
                 </span>
               })
@@ -89,7 +90,7 @@ class MethodDocInfo extends React.Component {
           }
         </Descriptions.Item>
       </Descriptions>
-      <ParamsTable datas={params} {...{ beans, urlPath, urlMethod, tableId }} />
+      <ParamsTable datas={params} {...{ beans, urlPath, urlMethod}} />
       <ReturnsTable datas={[returns]} beans={beans} />
     </div>);
   }

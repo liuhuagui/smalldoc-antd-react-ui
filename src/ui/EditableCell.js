@@ -1,6 +1,10 @@
 import React from "react";
-import { Input, Button, Select, Icon } from 'antd';
+import { Input, Button, Select } from 'antd';
 import ManualUpload from "./ManualUpload";
+import { arrayTag } from "../util/Constants";
+import PlusOutlined from "@ant-design/icons/PlusOutlined";
+
+
 
 export default class EditableCell extends React.Component {
     state = {
@@ -33,51 +37,74 @@ export default class EditableCell extends React.Component {
         handleSave(newRecord, dataIndex);
     };
 
+
+    index = 0;
+    addNewRecord = (e) => {
+        e.stopPropagation();
+        const { record, addRecord } = this.props;
+        const newRecord = { ...record };
+        newRecord.name = newRecord.name.replace(arrayTag, `[${++this.index}]`)
+        addRecord(newRecord, this.index);
+    }
+
     onInputChange = e => {
         this.setState({ value: e.target.value });
     }
 
-    handleChange = (value) => {
+    onSelectChange = (value) => {
         if (value.length === 0) {
             this.setState({ value, key: 0 });
             return;
         }
-        const inputValue = value[value.length - 1];
+        const selectValue = value[value.length - 1];
         const key = this.state.key + 1;
-        inputValue.key = key;
+        selectValue.key = key;
+        delete selectValue.value;//为了Select组件实现重复值
         this.setState({ value, key });
     }
 
+    nodeRefCallback = node => (this.input = node);
+
     renderCell = () => {
-        const { children, dataIndex, record, title, onUp } = this.props;
+        const { children, record,dataIndex } = this.props;
         const { editing, value } = this.state;
-        const initValue = record[dataIndex];
-        let A = <Input ref={node => (this.input = node)} value={value ? value : initValue} onChange={this.onInputChange} onPressEnter={this.inputSave} onBlur={this.inputSave} />;
+
         if (record.file)
-            A = <ManualUpload ref={node => (this.input = node)} onUp={() => onUp(record.key)} />
-        if (record.dimension)
-            A = <Select allowClear ref={node => (this.input = node)} mode="tags"
+            return <ManualUpload {...{record,dataIndex}} ref={this.nodeRefCallback} />
+
+        let initValue = children[1];
+        const includeArrayTag = record.name.includes(arrayTag);
+        if (!editing)
+            return (<div
+                className="editable-cell-value-wrap"
+                style={{ paddingRight: 24, display: 'flex', justifyContent: 'space-between' }}
+                onClick={this.toggleEdit}
+            >
+                {children[1] && children[1].toString()}
+                {includeArrayTag && <Button className='forward-visiable-button' onClick={this.addNewRecord} icon={<PlusOutlined />} type='primay' />}
+            </div>);
+
+        if (includeArrayTag) {
+            return <Input addonAfter={<Button className='back-addon-after-button' icon={<PlusOutlined />} type='primay' />} ref={this.nodeRefCallback} value={value ? value : initValue} onChange={this.onInputChange} onPressEnter={this.inputSave} onBlur={this.inputSave} />;
+        }
+
+        if (record.dimension) {
+            initValue = Array.isArray(initValue) ? initValue.map((v, i) => ({ key: i, label: v })) : [{ key: 0, label: initValue }];
+            return <Select allowClear ref={this.nodeRefCallback} mode="tags"
                 open={false}
-                value={value ? value : [{ key: 0, label: initValue }]}
+                value={value ? value : initValue}
                 style={{ width: '100%' }}
                 optionLabelProp={'label'}
+                labelInValue={true}
                 tokenSeparators={[',']}
                 placeholder={'To split with ,'}
-                onChange={this.handleChange}
-                labelInValue={true}
+                onChange={this.onSelectChange}
                 onBlur={this.selectSave}
             >
             </Select>;
+        }
 
-        return editing ? A : (
-            <div
-                className="editable-cell-value-wrap"
-                style={{ paddingRight: 24 }}
-                onClick={this.toggleEdit}
-            >
-                {initValue?initValue.toString():"FILE EXPECTED"}
-            </div>
-        );
+        return <Input ref={this.nodeRefCallback} value={value ? value : initValue} onChange={this.onInputChange} onPressEnter={this.inputSave} onBlur={this.inputSave} />;
     };
 
     render() {
@@ -89,10 +116,9 @@ export default class EditableCell extends React.Component {
             index,
             handleSave,
             children,
-            onUp,
+            addRecord,
             ...restProps
         } = this.props;
-        const onEvent = editable ? { onKeyUp: () => onUp(record.key), onMouseUp: () => onUp(record.key) } : {};
         return (
             <td {...restProps}  >
                 {editable ? this.renderCell() : children}
