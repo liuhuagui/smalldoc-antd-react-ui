@@ -66,11 +66,11 @@ export default class EditableCell extends React.Component {
     nodeRefCallback = node => (this.input = node);
 
     renderCell = () => {
-        const { children, record,dataIndex } = this.props;
+        const { children, record, dataIndex } = this.props;
         const { editing, value } = this.state;
 
         if (record.file)
-            return <ManualUpload {...{record,dataIndex}} ref={this.nodeRefCallback} />
+            return <ManualUpload {...{ record, dataIndex }} ref={this.nodeRefCallback} />
 
         let initValue = children[1];
         const includeArrayTag = record.name.includes(arrayTag);

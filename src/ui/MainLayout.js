@@ -7,6 +7,7 @@ import 'antd/dist/antd.css';
 import '../css/layout.css';
 
 
+
 const { Sider, Content, Header } = Layout;
 const { SubMenu } = Menu;
 const { Option } = Select;
@@ -15,7 +16,7 @@ class MainLayout extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: {},//JSON.parse(document.querySelector('#docJSON').value),
+      data: window.data,//{}
       collapsed: false,
       activeKey: 0,
       packageArray: [],
@@ -51,19 +52,24 @@ class MainLayout extends React.Component {
   };
 
   componentDidMount() {
-    const docurl = document.querySelector('#docurl').textContent;
-    fetch(docurl, {
-      method: 'POST'
-    }).then(response => {
-      if (response.ok)
-        return response.json();
-      throw new Error(`Request is failed, status is ${response.status}`);
-    }).then(data => {
-      const { packages = {} } = data;
-      const packageArray = Object.entries(packages);
-      const selected = packageArray[0] ? packageArray[0][0] : '';
-      this.setState({ data, packageArray, selected, ...getClasses(packages, selected) });
-    }, reason => console.log(reason));
+    const { data } = this.state;
+    const { packages = {} } = data;
+    const packageArray = Object.entries(packages);
+    const selected = packageArray[0] ? packageArray[0][0] : '';
+    this.setState({ data, packageArray, selected, ...getClasses(packages, selected) });
+    // const docurl = document.querySelector('#docurl').textContent;
+    // fetch(docurl, {
+    //   method: 'POST'
+    // }).then(response => {
+    //   if (response.ok)
+    //     return response.json();
+    //   throw new Error(`Request is failed, status is ${response.status}`);
+    // }).then(data => {
+    //   const { packages = {} } = data;
+    //   const packageArray = Object.entries(packages);
+    //   const selected = packageArray[0] ? packageArray[0][0] : '';
+    //   this.setState({ data, packageArray, selected, ...getClasses(packages, selected) });
+    // }, reason => console.log(reason));
   }
 
   render() {

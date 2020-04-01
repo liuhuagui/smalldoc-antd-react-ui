@@ -6,29 +6,25 @@ import { pathVariableRegex, GET, HEAD, POST } from "../util/Constants";
 const send = ({ urlPath, selectedRows, urlMethod = POST, showDrawer }) => {
     const newJSONForm = {};
     selectedRows.forEach(record => {
-        const examples = record.example;
-        if (Array.isArray(examples) && examples.length > 0) {
-            console.log(examples[0] instanceof File)
-            newJSONForm[record.name] = examples[0];
-        } else {
-            newJSONForm[record.name] = record.example;
-        }
+        newJSONForm[record.name] = record.example;
     });
-    urlPath = urlPath.replace(pathVariableRegex, (m, p1) => newJSONForm[p1]);
-    console.log(urlPath);
-    console.log(newJSONForm);
-    console.log(urlMethod);
-    console.log(showDrawer);
-    console.log('----');
+    const pathVariables = [];
+    urlPath = urlPath.replace(pathVariableRegex, (m, p1) => { pathVariables.push(p1); return newJSONForm[p1]; });
+    
     let body = null;
     if (urlMethod === HEAD) {
-    } else if (urlMethod === GET) {
-        const serializedKV = Object.entries(newJSONForm).map(([key, value]) => { console.log(typeof value); return `${key}=${value}`; }).join("&");
-        urlPath = `${urlPath}?${serializedKV}`;
-    } else {
+        //TODO
+    }
+    else if (urlMethod === GET) {
+        const serializedKV = Object.entries(newJSONForm)
+            .filter(([key, value]) => !pathVariables.includes(key))
+            .map(([key, value]) => `${key}=${value}`).join("&");
+        if (serializedKV)
+            urlPath = `${urlPath}?${serializedKV}`;
+    }
+    else {
         body = formData(newJSONForm);
     }
-    console.log(urlPath)
     fetch(urlPath, { method: urlMethod, body })
         .then(response => {
             if (response.ok)
@@ -39,7 +35,7 @@ const send = ({ urlPath, selectedRows, urlMethod = POST, showDrawer }) => {
                 showDrawer(data, urlPath);
             },
             reason => {
-                message.error(reason);
+                message.error(reason.toString());
             }
         );
 };

@@ -8,7 +8,13 @@ import { Button, message } from 'antd';
 export function formData(json) {
     const formData = new FormData();
     Object.keys(json).forEach(key => {
-        formData.append(key, json[key]);
+        const values = json[key];
+        if (Array.isArray(values) && values.length > 0 && values[0] instanceof File) {
+            for (let value of values)
+                formData.append(key, value);
+        } else {
+            formData.append(key, values);
+        }
     });
     return formData;
 };

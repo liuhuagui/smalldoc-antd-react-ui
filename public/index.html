@@ -7,13 +7,12 @@
     <meta name="theme-color" content="#000000" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>${title}</title>
+    <script>
+      window.data = ${docJSON};
+    </script>
   </head>
   <body>
-    <!-- <textarea style="display: none" id="docJSON">
-     ${docJSON}
-    </textarea> -->
-    
-    <p id="docurl" style="display: none">http://192.168.1.28:82/knowledge-base/smalldoc</p>
+    <!-- <p id="docurl" style="display: none">http://127.0.0.1:82/knowledge-base/smalldoc</p> -->
     <div id="root"></div>
   </body>
 </html>
